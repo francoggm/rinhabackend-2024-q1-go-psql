@@ -1,11 +1,11 @@
 package server
 
 import (
+	"github.com/francoggm/rinhabackend-2024-q1-go-psql/infra/database"
 	"github.com/gofiber/fiber/v3"
-	"github.com/jackc/pgx/v5/pgxpool"
 )
 
-func configureHandlers(app *fiber.App, db *pgxpool.Pool) {
+func configureHandlers(app *fiber.App, db *database.Database) {
 	gp := app.Group("/clientes/:id")
 
 	gp.Get("/extrato", func(c fiber.Ctx) error {
@@ -16,7 +16,7 @@ func configureHandlers(app *fiber.App, db *pgxpool.Pool) {
 	})
 }
 
-func Run(port string, db *pgxpool.Pool) error {
+func Run(port string, db *database.Database) error {
 	app := fiber.New()
 	configureHandlers(app, db)
 

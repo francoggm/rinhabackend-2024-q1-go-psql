@@ -4,7 +4,7 @@ up: down
 
 up-debug: down
 	@echo Starting debug services
-	docker-compose -f docker-compose.debug.yml up -d
+	docker-compose -f docker-compose.debug.yml up -d && sleep 1
 	cd src && go run .
 
 down:

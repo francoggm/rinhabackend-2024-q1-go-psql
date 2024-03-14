@@ -2,7 +2,7 @@ CREATE UNLOGGED TABLE "clients" (
 	"id" SERIAL PRIMARY KEY NOT NULL,
 	"limit" integer NOT NULL,
 	"balance" integer DEFAULT 0 NOT NULL
-  CONSTRAINT can_make CHECK (clients.balance >= -clients.limit)
+  CONSTRAINT make_transaction CHECK (clients.balance >= -clients.limit)
 );
 
 CREATE UNLOGGED TABLE "transactions" (
@@ -15,6 +15,42 @@ CREATE UNLOGGED TABLE "transactions" (
 );
 
 -- TODO: Indexes
+
+CREATE OR REPLACE FUNCTION make_transaction(
+  client_id INTEGER,
+  transaction_value NUMERIC,
+  transaction_type CHAR,
+	transaction_description TEXT
+) RETURNS TABLE (new_balance NUMERIC, new_limit NUMERIC) AS
+$$
+DECLARE
+    client_balance NUMERIC;
+    client_limit NUMERIC;
+		debito_value NUMERIC;
+BEGIN
+	SELECT clients.balance, clients.limit INTO client_balance, client_limit
+	FROM clients
+	WHERE id = client_id;
+
+	IF NOT FOUND THEN
+		RAISE EXCEPTION 'Client not found';
+	END IF;
+
+	IF transaction_type = 'd' THEN
+			debito_value := -transaction_value;
+	END IF;
+
+	UPDATE clients
+	SET balance = client_balance + debito_value
+	WHERE id = client_id;
+
+	INSERT INTO transactions (client_id, transaction_value, description)
+  VALUES (client_id, transaction_value, transaction_description);
+
+	RETURN QUERY SELECT balance, client_limit;
+END;
+$$
+LANGUAGE plpgsql;
 
 DO $$
 BEGIN

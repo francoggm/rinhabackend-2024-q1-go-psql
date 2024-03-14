@@ -7,10 +7,17 @@ import (
 	"github.com/jackc/pgx/v5/pgxpool"
 )
 
-func NewDatabase(username string, password string, hostname string, db string) (*pgxpool.Pool, error) {
-	cfg, _ := pgxpool.ParseConfig(fmt.Sprintf("user=%s password=%s host=%s port=5432 dbname=%s sslmode=disabled", username, password, hostname, db))
+type Database struct {
+	db *pgxpool.Pool
+}
+
+func NewDatabase(username string, password string, hostname string, db string) (*Database, error) {
+	cfg, _ := pgxpool.ParseConfig(fmt.Sprintf("user=%s password=%s host=%s port=5432 dbname=%s sslmode=disable", username, password, hostname, db))
 	cfg.MaxConns = 8
 	cfg.MinConns = 4
 
-	return pgxpool.NewWithConfig(context.Background(), cfg)
+	pool, err := pgxpool.NewWithConfig(context.Background(), cfg)
+	return &Database{
+		db: pool,
+	}, err
 }

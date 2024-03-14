@@ -1,14 +1,14 @@
 package server
 
 import (
+	"github.com/francoggm/rinhabackend-2024-q1-go-psql/infra/database"
 	"github.com/gofiber/fiber/v3"
-	"github.com/jackc/pgx/v5/pgxpool"
 )
 
-func extract(c fiber.Ctx, db *pgxpool.Pool) error {
+func extract(c fiber.Ctx, db *database.Database) error {
 	return nil
 }
 
-func transaction(c fiber.Ctx, db *pgxpool.Pool) error {
+func transaction(c fiber.Ctx, db *database.Database) error {
 	return nil
 }
