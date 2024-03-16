@@ -8,6 +8,7 @@ CREATE UNLOGGED TABLE "clients" (
 CREATE UNLOGGED TABLE "transactions" (
 	"id" SERIAL PRIMARY KEY NOT NULL,
 	"value" integer NOT NULL,
+	"type" char NOT NULL,
 	"description" text NOT NULL,
 	"client_id" integer NOT NULL,
 	"created_at" timestamp with time zone DEFAULT now() NOT NULL,
@@ -19,8 +20,8 @@ CREATE UNLOGGED TABLE "transactions" (
 CREATE OR REPLACE FUNCTION make_transaction(
   client_id INTEGER,
   transaction_value NUMERIC,
-  transaction_type CHAR,
-	transaction_description TEXT
+	transaction_description TEXT,
+	transaction_type CHAR
 ) RETURNS TABLE (new_balance NUMERIC, new_limit NUMERIC) AS
 $$
 DECLARE
@@ -33,21 +34,23 @@ BEGIN
 	WHERE id = client_id;
 
 	IF NOT FOUND THEN
-		RAISE EXCEPTION 'Client not found';
+		RAISE EXCEPTION 'client not found';
 	END IF;
 
 	IF transaction_type = 'd' THEN
-			debito_value := -transaction_value;
+		client_balance := client_balance - transaction_value;
+	ELSE
+		client_balance := client_balance + transaction_value;
 	END IF;
 
 	UPDATE clients
-	SET balance = client_balance + debito_value
+	SET balance = client_balance
 	WHERE id = client_id;
 
-	INSERT INTO transactions (client_id, transaction_value, description)
-  VALUES (client_id, transaction_value, transaction_description);
+	INSERT INTO transactions (client_id, value, description, type)
+  VALUES (client_id, transaction_value, transaction_description, transaction_type);
 
-	RETURN QUERY SELECT balance, client_limit;
+	RETURN QUERY SELECT client_balance, client_limit;
 END;
 $$
 LANGUAGE plpgsql;
