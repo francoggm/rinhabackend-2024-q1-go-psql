@@ -2,14 +2,17 @@ version: '3.9'
 
 services:
   api01: &api
-    image: francogm/rinha-backend:latest
+    build: .
     ports:
       - 8081:8080
     depends_on:
-      - neo
+      - database
     environment:
-      - DB_HOSTNAME=neo
       - PORT=8080
+      - DB_USER=postgres
+      - DB_PASSWORD=password
+      - DB_HOST=database
+      - DB=db
     restart: always
     # deploy:
     #   resources:
@@ -32,7 +35,7 @@ services:
       - POSTGRES_DB=db
     volumes:
       - ./configs/postgresql.conf:/etc/postgresql/postgresql.conf
-      - ./init.sql:/docker-entrypoint-initdb.d/init.sql
+      - ./scripts/init.sql:/docker-entrypoint-initdb.d/init.sql
     command: 'postgres -c config_file=/etc/postgresql/postgresql.conf'
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U postgres"]

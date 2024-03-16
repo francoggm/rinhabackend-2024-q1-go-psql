@@ -9,7 +9,7 @@ up-debug: down
 
 down:
 	@echo Stoping services
-	docker-compose -f docker-compose.debug.yml down --remove-orphans
+	docker-compose down
 
 upd:
 	cd src && go mod tidy

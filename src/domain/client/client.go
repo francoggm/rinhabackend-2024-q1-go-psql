@@ -15,8 +15,8 @@ type ExtractTransaction struct {
 }
 
 type Extract struct {
-	Info         ExtractClientInfo    `json:"ultimas_transacoes"`
-	Transactions []ExtractTransaction `json:"saldo"`
+	Info         ExtractClientInfo    `json:"saldo"`
+	Transactions []ExtractTransaction `json:"ultimas_transacoes"`
 }
 
 type TransactionReq struct {
