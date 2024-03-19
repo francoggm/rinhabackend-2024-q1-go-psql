@@ -17,6 +17,10 @@ func extract(c fiber.Ctx, db *database.Database) error {
 		return c.Status(http.StatusNotFound).Send(nil)
 	}
 
+	if id < 1 || id > 5 {
+		return c.Status(http.StatusNotFound).Send(nil)
+	}
+
 	extract, err := db.GetExtract(c.Context(), id)
 	if err != nil {
 		switch err {
@@ -35,6 +39,10 @@ func transaction(c fiber.Ctx, db *database.Database) error {
 
 	id, err := strconv.Atoi(idParam)
 	if err != nil {
+		return c.Status(http.StatusNotFound).Send(nil)
+	}
+
+	if id < 1 || id > 5 {
 		return c.Status(http.StatusNotFound).Send(nil)
 	}
 

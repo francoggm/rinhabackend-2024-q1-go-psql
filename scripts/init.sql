@@ -1,8 +1,8 @@
 CREATE UNLOGGED TABLE "clients" (
 	"id" SERIAL PRIMARY KEY NOT NULL,
-	"limit" integer NOT NULL,
+	"limite" integer NOT NULL,
 	"balance" integer DEFAULT 0 NOT NULL
-  CONSTRAINT make_transaction CHECK (clients.balance >= -clients.limit)
+  CONSTRAINT can_mk CHECK (balance >= -limite)
 );
 
 CREATE UNLOGGED TABLE "transactions" (
@@ -15,54 +15,45 @@ CREATE UNLOGGED TABLE "transactions" (
   FOREIGN KEY (client_id) REFERENCES clients(id)
 );
 
--- TODO: Indexes
+CREATE INDEX idx_client_id ON clients (id);
+CREATE INDEX idx_transactions_client_id_created_at ON transactions (client_id, created_at DESC);
 
 CREATE OR REPLACE FUNCTION make_transaction(
   client_id INTEGER,
-  transaction_value NUMERIC,
+  transaction_value INTEGER,
 	transaction_description TEXT,
 	transaction_type CHAR
-) RETURNS TABLE (new_balance NUMERIC, new_limit NUMERIC) AS
+) RETURNS TABLE (new_balance INTEGER, new_limit INTEGER) AS
 $$
 DECLARE
-    client_balance NUMERIC;
-    client_limit NUMERIC;
-		debito_value NUMERIC;
+    correct_value INTEGER;
 BEGIN
-	SELECT clients.balance, clients.limit INTO client_balance, client_limit
-	FROM clients
-	WHERE id = client_id;
-
-	IF NOT FOUND THEN
-		RAISE EXCEPTION 'client not found';
-	END IF;
-
-	IF transaction_type = 'd' THEN
-		client_balance := client_balance - transaction_value;
-	ELSE
-		client_balance := client_balance + transaction_value;
-	END IF;
+	IF transaction_type = 'd' 
+		THEN correct_value := -transaction_value;
+		ELSE correct_value := transaction_value;
+	END IF; 
 
 	UPDATE clients
-	SET balance = client_balance
-	WHERE id = client_id;
+	SET balance = balance + correct_value
+	WHERE id = client_id
+	RETURNING balance, limite INTO new_balance, new_limit;
 
 	INSERT INTO transactions (client_id, value, description, type)
   VALUES (client_id, transaction_value, transaction_description, transaction_type);
-
-	RETURN QUERY SELECT client_balance, client_limit;
+	
+	RETURN QUERY SELECT new_balance, new_limit;
 END;
 $$
 LANGUAGE plpgsql;
 
 DO $$
 BEGIN
-	INSERT INTO "clients" ("id", "limit")
+	INSERT INTO "clients" ("id", "limite", "balance")
 	VALUES
-		(1, 100000),
-    (2, 80000),
-    (3, 1000000),
-    (4, 10000000),
-    (5, 500000);
+		(1, 100000, 0),
+    (2, 80000, 0),
+    (3, 1000000, 0),
+    (4, 10000000, 0),
+    (5, 500000, 0);
 END;
 $$;

@@ -4,7 +4,7 @@ const (
 	ExtractQuery = `
 		SELECT 
 			c.balance, 
-			c.limit, 
+			c.limite, 
 			t.value, 
 			t.description, 
 			t.type,

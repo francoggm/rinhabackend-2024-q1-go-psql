@@ -6,19 +6,20 @@ services:
     ports:
       - 8081:8080
     depends_on:
-      - database
+      database:
+        condition: service_healthy
     environment:
       - PORT=8080
       - DB_USER=postgres
       - DB_PASSWORD=password
       - DB_HOST=database
-      - DB=db
+      - DB=db        
     restart: always
-    # deploy:
-    #   resources:
-    #     limits:
-    #       cpus: "0.20"
-    #       memory: "30MB"
+    deploy:
+      resources:
+        limits:
+          cpus: "0.25"
+          memory: "50MB"
 
   api02:
     <<: *api
@@ -42,11 +43,11 @@ services:
       interval: 5s
       timeout: 5s
       start_period: 10s
-    # deploy:
-    #   resources:
-    #     limits:
-    #       cpus: "0.70"
-    #       memory: "440MB"
+    deploy:
+      resources:
+        limits:
+          cpus: "0.70"
+          memory: "350MB"
   
   nginx:
     image: nginx:latest
@@ -57,11 +58,11 @@ services:
       - api02
     ports:
       - "9999:9999"
-    # deploy:
-    #   resources:
-    #     limits:
-    #       cpus: "0.60"
-    #       memory: "80MB"
+    deploy:
+      resources:
+        limits:
+          cpus: "0.30"
+          memory: "100MB"
 
 networks:
   default:

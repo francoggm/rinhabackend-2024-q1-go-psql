@@ -2,7 +2,6 @@ package database
 
 import (
 	"context"
-	"database/sql"
 	"strings"
 	"time"
 
@@ -28,28 +27,18 @@ func (d *Database) GetExtract(ctx context.Context, id int) (*client.Extract, err
 	var transactions = make([]client.ExtractTransaction, 0)
 
 	for rows.Next() {
-		var (
-			value       sql.NullInt32
-			description sql.NullString
-			ttype       sql.NullString
-			createdAt   sql.NullTime
-		)
+		var transaction client.ExtractTransaction
 
-		err := rows.Scan(&info.Balance, &info.Limit, &value, &description, &ttype, &createdAt)
-		if err != nil || !value.Valid || !description.Valid || !ttype.Valid || !createdAt.Valid {
+		err := rows.Scan(&info.Balance, &info.Limit, &transaction.Value, &transaction.Description, &transaction.Type, &transaction.CreatedAt)
+		if info.Limit == 0 && info.Balance == 0 {
+			return nil, client.ErrNotFound
+		}
+
+		if err != nil {
 			continue
 		}
 
-		transactions = append(transactions, client.ExtractTransaction{
-			Value:       int(value.Int32),
-			Description: description.String,
-			Type:        ttype.String,
-			CreatedAt:   createdAt.Time,
-		})
-	}
-
-	if info.Balance == 0 && info.Limit == 0 {
-		return nil, client.ErrNotFound
+		transactions = append(transactions, transaction)
 	}
 
 	info.Date = time.Now()
